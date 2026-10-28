@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Java Jenkins POC Calculator</title>
+  <style>
+    :root { --bg:#f5f6f8; --card:#fff; --text:#1c1e21; --muted:#667; --accent:#2563eb; --err:#c0392b; --ok:#1e7e34; --border:#d5d9e0; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#14161a; --card:#1e2127; --text:#e8eaed; --muted:#9aa0aa; --accent:#5b8def; --err:#ff6b5e; --ok:#4cc26b; --border:#343942; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+           background:var(--bg); color:var(--text); font-family:system-ui, sans-serif; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:24px; width:min(92vw,380px); }
+    h1 { font-size:1.2rem; margin:0 0 16px; }
+    label { display:block; font-size:.85rem; color:var(--muted); margin:12px 0 4px; }
+    select, input, button { width:100%; padding:10px; font-size:1rem; border-radius:8px; border:1px solid var(--border);
+                            background:var(--card); color:var(--text); }
+    button { margin-top:16px; background:var(--accent); color:#fff; border:none; cursor:pointer; }
+    #result { margin-top:16px; min-height:1.5em; font-weight:600; }
+    .error { color:var(--err); } .ok { color:var(--ok); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Calculator</h1>
+    <label for="op">Operation</label>
+    <select id="op">
+      <option value="add">Add</option>
+      <option value="subtract">Subtract</option>
+      <option value="multiply">Multiply</option>
+      <option value="divide">Divide</option>
+      <option value="evenodd">Even or odd</option>
+    </select>
+    <label for="a">First number</label>
+    <input id="a" type="number" step="1" value="10">
+    <div id="bRow">
+      <label for="b">Second number</label>
+      <input id="b" type="number" step="1" value="5">
+    </div>
+    <button id="go">Calculate</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const op = document.getElementById('op');
+    const a = document.getElementById('a');
+    const b = document.getElementById('b');
+    const bRow = document.getElementById('bRow');
+    const result = document.getElementById('result');
+
+    op.addEventListener('change', () => {
+      bRow.style.display = op.value === 'evenodd' ? 'none' : 'block';
+    });
+
+    async function calculate() {
+      const params = new URLSearchParams({ op: op.value, a: a.value, b: b.value });
+      try {
+        const res = await fetch('api/calculate?' + params);
+        const data = await res.json();
+        if (res.ok) {
+          result.className = 'ok';
+          result.textContent = 'Result: ' + data.result;
+        } else {
+          result.className = 'error';
+          result.textContent = 'Error: ' + data.error;
+        }
+      } catch (e) {
+        result.className = 'error';
+        result.textContent = 'Could not reach the server.';
+      }
+    }
+
+    document.getElementById('go').addEventListener('click', calculate);
+  </script>
+</body>
+</html>
